@@ -69,7 +69,40 @@ func boot(config ambient.Config) error {
 		c.JSON(200, currentState)
 	})
 
-	r.POST("/command", func(c *gin.Context) {
+	r.POST("/desire", func(c *gin.Context) {
+
+		// ambient needs to know how to accomplish a required state.
+		// This means each state variable needs to be associated with
+		// particular effectors, meaning "change this effector to change
+		// this state". This is a simple 1:1 with things like switches,
+		// though we still need to worry about non-compliance. Other
+		// effectors (e.g. heaters) have a more control feedback
+		// relationship with the desired state (the thermostat). Also,
+		// oftentimes effectors have impacts on multiple state variables,
+		// which leads to planning and multi-variable optimization.
+
+		// Discrete:
+		// body: [{
+		//   variable: <state_variable>
+		//   equals: <value>
+		// }]
+
+		// Continuous:
+		// [{
+		//   variable: <state_variable>
+		//   gt: 65,
+		//   lt: 75
+		// }]
+
+		// Return value should be whether or not desired state was
+		// received. An optional callback may be sent which will
+		// be used to notify when the state has been reached.
+
+		// TODO: load params
+		// TODO: find command from registry
+		// TODO: execute command with params
+		// TODO: return results
+
 		c.JSON(200, gin.H{})
 	})
 
