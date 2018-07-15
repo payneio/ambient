@@ -1,0 +1,5 @@
+[SmartThings]
+
+ClientID = "<SmartThings SmartApp OAuth Client ID>"
+Secret = "<SmartThings SmartApp OAuth Secret>"
+TokenFilePath = "<Filepath to store OAuth token>"
