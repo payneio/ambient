@@ -1,17 +1,13 @@
 package ambient
 
+import "github.com/payneio/ambient/registry"
+
 type Authenticator interface {
 	Authenticate()
 }
 
-type Registrar interface {
-	RegisterSystem()
-	RegisterSensor()
-	RegisterEffector()
-}
-
 type Command struct {
-	Label  string
+	URI    string
 	Params map[string]interface{}
 }
 
@@ -28,5 +24,18 @@ type Credentials struct {
 
 type System interface {
 	Authenticate(Credentials)
-	RegisterDevices(*Registrar)
+	RegisterDevices(*registry.Registrar)
+}
+
+type Device struct {
+	ID          string
+	Name        string
+	DisplayName string
+	Attributes  map[string]interface{}
+	Commands    []Command
+}
+
+type Switcher interface {
+	On()
+	Off()
 }

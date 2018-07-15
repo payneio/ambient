@@ -15,7 +15,6 @@ func die(err error) {
 
 func main() {
 
-	// TODO: replace this with env var
 	configPath := os.Getenv(`AMBIENTD`)
 	if configPath == "" {
 		die(errors.New("AMBIENTD must be specified in environment"))
