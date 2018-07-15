@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/payneio/ambient"
 	"github.com/payneio/ambient/discovery"
 	"github.com/payneio/ambient/registry"
@@ -35,17 +36,7 @@ func main() {
 			Name:  "start",
 			Usage: "start ambient",
 			Action: func(c *cli.Context) error {
-
-				registry := &registry.Registry{}
-
-				discovery.Discover(config, registry)
-
-				currentState := state.New(registry)
-
-				fmt.Print(currentState)
-
-				return nil
-
+				return boot(config)
 			},
 		},
 	}
@@ -55,4 +46,34 @@ func main() {
 		die(err)
 	}
 
+}
+
+func boot(config ambient.Config) error {
+	registry := &registry.Registry{}
+
+	discovery.Discover(config, registry)
+
+	currentState := state.New(registry)
+	fmt.Print(currentState)
+
+	// Start HTTP
+	r := gin.Default()
+
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+
+	r.GET("/state", func(c *gin.Context) {
+		c.JSON(200, currentState)
+	})
+
+	r.POST("/command", func(c *gin.Context) {
+		c.JSON(200, gin.H{})
+	})
+
+	r.Run() // listen and serve on 0.0.0.0:8080
+
+	return nil
 }
