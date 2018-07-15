@@ -6,11 +6,17 @@ import (
 	"net/http"
 )
 
+// DeviceCommand holds one command a device can accept.
+type DeviceCommand struct {
+	Command string                 `json:"command"`
+	Params  map[string]interface{} `json:"params"`
+}
+
 // GetDeviceCommands returns a slice of commands a specific device accepts.
 func GetDeviceCommands(client *http.Client, endpoint string, id string) ([]DeviceCommand, error) {
 	ret := []DeviceCommand{}
 
-	contents, err := issueCommand(client, endpoint, "/devices/"+id+"/commands")
+	contents, err := IssueCommand(client, endpoint, "/devices/"+id+"/commands")
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +28,7 @@ func GetDeviceCommands(client *http.Client, endpoint string, id string) ([]Devic
 }
 
 // issueCommand sends a given command to an URI and returns the contents
-func issueCommand(client *http.Client, endpoint string, cmd string) ([]byte, error) {
+func IssueCommand(client *http.Client, endpoint string, cmd string) ([]byte, error) {
 	uri := endpoint + cmd
 	resp, err := client.Get(uri)
 	if err != nil {
