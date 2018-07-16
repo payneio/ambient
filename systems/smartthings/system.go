@@ -2,11 +2,11 @@ package smartthings
 
 import (
 	"context"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
-	"github.com/payneio/ambient"
+	"github.com/payneio/ambient/registry"
 )
 
 type System struct {
@@ -14,7 +14,7 @@ type System struct {
 	endpoint string
 }
 
-func (s *System) Authenticate(creds ambient.Credentials) {
+func (s *System) Authenticate(creds registry.Credentials) {
 
 	// Create the oauth2.config object and get a token
 	config := NewOAuthConfig(creds.ClientID, creds.Secret)
@@ -38,44 +38,65 @@ func (s *System) Authenticate(creds ambient.Credentials) {
 
 }
 
-func (s *System) RegisterDevices() {
+// IssueCommand sends a given command to an URI and returns the contents
+func IssueCommand(client *http.Client, endpoint string, cmd string) ([]byte, error) {
+	uri := endpoint + cmd
+	resp, err := client.Get(uri)
+	if err != nil {
+		return nil, err
+	}
+	contents, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	return contents, nil
+}
 
-	devices := []string{}
+func (s *System) ListDevices() ([]*registry.Device, error) {
+
+	var devices []*registry.Device
 
 	// List all info about devices
 	devs, err := GetDevices(s.client, s.endpoint)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	for _, d := range devs {
-		devices = append(devices, d.ID)
-	}
 
-	for _, id := range devices {
-		dev, err := GetDeviceInfo(s.client, s.endpoint, id)
+		device := &registry.Device{
+			ID:          d.ID,
+			Name:        d.Name,
+			DisplayName: d.DisplayName,
+			Attributes:  make(map[string]interface{}),
+		}
+
+		// Get device info
+		info, err := GetDeviceInfo(s.client, s.endpoint, device.ID)
 		if err != nil {
-			log.Fatalln(err)
-		}
-		fmt.Printf("\nDevice ID:      %s\n", dev.ID)
-		fmt.Printf("  Name:         %s\n", dev.Name)
-		fmt.Printf("  Display Name: %s\n", dev.DisplayName)
-		fmt.Printf("  Attributes:\n")
-		for k, v := range dev.Attributes {
-			fmt.Printf("    %v: %v\n", k, v)
+			return nil, err
 		}
 
-		fmt.Printf("  Commands & Parameters:\n")
-		cmds, err := GetDeviceCommands(s.client, s.endpoint, id)
+		for k, v := range info.Attributes {
+			device.Attributes[k] = v
+		}
+
+		cmds, err := GetDeviceCommands(s.client, s.endpoint, device.ID)
 		for _, cmd := range cmds {
-			fmt.Printf("    %s", cmd.Command)
+			command := registry.Command{
+				Label:  cmd.Command,
+				Params: make(map[string]interface{}),
+			}
 			if len(cmd.Params) != 0 {
-				fmt.Printf(" Parameters:")
 				for k, v := range cmd.Params {
-					fmt.Printf(" %s=%s", k, v)
+					command.Params[k] = v
 				}
 			}
-			fmt.Println()
+			device.Commands = append(device.Commands, command)
 		}
+
+		devices = append(devices, device)
 	}
+	return devices, nil
 
 }
