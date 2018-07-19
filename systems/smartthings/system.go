@@ -53,9 +53,9 @@ func IssueCommand(client *http.Client, endpoint string, cmd string) ([]byte, err
 	return contents, nil
 }
 
-func (s *System) ListDevices() ([]*registry.Device, error) {
+func (s *System) ListDevices() ([]*STDevice, error) {
 
-	var devices []*registry.Device
+	var devices []*STDevice
 
 	// List all info about devices
 	devs, err := GetDevices(s.client, s.endpoint)
@@ -64,7 +64,7 @@ func (s *System) ListDevices() ([]*registry.Device, error) {
 	}
 	for _, d := range devs {
 
-		device := &registry.Device{
+		device := &STDevice{
 			ID:          d.ID,
 			Name:        d.Name,
 			DisplayName: d.DisplayName,
@@ -81,19 +81,11 @@ func (s *System) ListDevices() ([]*registry.Device, error) {
 			device.Attributes[k] = v
 		}
 
-		cmds, err := GetDeviceCommands(s.client, s.endpoint, device.ID)
-		for _, cmd := range cmds {
-			command := registry.Command{
-				Label:  cmd.Command,
-				Params: make(map[string]interface{}),
-			}
-			if len(cmd.Params) != 0 {
-				for k, v := range cmd.Params {
-					command.Params[k] = v
-				}
-			}
-			device.Commands = append(device.Commands, command)
+		cmds, err := ListDeviceCommands(s.client, s.endpoint, device.ID)
+		if err != nil {
+			return nil, err
 		}
+		device.Commands = cmds
 
 		devices = append(devices, device)
 	}

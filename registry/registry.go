@@ -5,17 +5,18 @@ type Authenticator interface {
 }
 
 type Command struct {
-	Label  string
+	ID     string
 	Params map[string]interface{}
 }
 
 type Effector interface {
-	Commands() map[string]Command
+	GetID() string
+	ListCommands() map[string]*Command
 	Exec(Command)
 }
 
 type Sensor interface {
-	Label() string
+	GetID() string
 	Read() interface{}
 	ReadString() string
 	ReadBytes() []byte
@@ -33,19 +34,6 @@ type System interface {
 	RegisterDevices(*Registrar)
 }
 
-type Device struct {
-	ID          string
-	Name        string
-	DisplayName string
-	Attributes  map[string]interface{}
-	Commands    []Command
-}
-
-type Switcher interface {
-	On()
-	Off()
-}
-
 type Registrar interface {
 	RegisterSystem()
 	RegisterSensor()
@@ -54,20 +42,20 @@ type Registrar interface {
 
 func New() *Registry {
 	return &Registry{
-		Sensors:   make(map[string]*Sensor),
-		Effectors: make(map[string]*Effector),
+		Sensors:   make(map[string]Sensor),
+		Effectors: make(map[string]Effector),
 	}
 }
 
 type Registry struct {
-	Sensors   map[string]*Sensor
-	Effectors map[string]*Effector
+	Sensors   map[string]Sensor
+	Effectors map[string]Effector
 }
 
-func (r *Registry) RegisterSensor() {
-
+func (r *Registry) RegisterSensor(sensor Sensor) {
+	r.Sensors[sensor.GetID()] = sensor
 }
 
-func (r *Registry) RegisterEffector() {
-
+func (r *Registry) RegisterEffector(effector Effector) {
+	r.Effectors[effector.GetID()] = effector
 }

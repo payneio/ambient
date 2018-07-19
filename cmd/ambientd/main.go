@@ -49,7 +49,7 @@ func main() {
 }
 
 func boot(config ambient.Config) error {
-	registry := &registry.Registry{}
+	registry := registry.New()
 
 	discovery.Discover(config, registry)
 

@@ -3,7 +3,17 @@ package smartthings
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/payneio/ambient/registry"
 )
+
+type STDevice struct {
+	ID          string
+	Name        string
+	DisplayName string
+	Attributes  map[string]interface{}
+	Commands    []STDeviceCommand
+}
 
 // STDeviceList holds the list of devices returned by /devices
 type STDeviceList struct {
@@ -55,8 +65,8 @@ func GetDeviceInfo(client *http.Client, endpoint string, id string) (*STDeviceIn
 	return ret, nil
 }
 
-// GetDeviceCommands returns a slice of commands a specific device accepts.
-func GetDeviceCommands(client *http.Client, endpoint string, id string) ([]STDeviceCommand, error) {
+// ListDeviceCommands returns a slice of commands a specific device accepts.
+func ListDeviceCommands(client *http.Client, endpoint string, id string) ([]STDeviceCommand, error) {
 	ret := []STDeviceCommand{}
 
 	contents, err := IssueCommand(client, endpoint, "/devices/"+id+"/commands")
@@ -68,4 +78,11 @@ func GetDeviceCommands(client *http.Client, endpoint string, id string) ([]STDev
 		return nil, err
 	}
 	return ret, nil
+}
+
+func SendCommand(client *http.Client, endpoint string, command registry.Command) error {
+	// FIXME: parse device ID from command using something
+	id := "1"
+	_, err := IssueCommand(client, endpoint, "/devices/"+id+"/"+command.ID)
+	return err
 }

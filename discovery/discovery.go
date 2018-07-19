@@ -10,18 +10,29 @@ import (
 
 func Discover(config ambient.Config, reg *registry.Registry) {
 
-	smartthings := smartthings.System{}
-	smartthings.Authenticate(registry.Credentials{
+	stSystem := &smartthings.System{}
+	stSystem.Authenticate(registry.Credentials{
 		ClientID:      config.SmartThings.ClientID,
 		Secret:        config.SmartThings.Secret,
 		TokenFilePath: config.SmartThings.TokenFilePath,
 	})
-	devices, err := smartthings.ListDevices()
+	devices, err := stSystem.ListDevices()
 	if err != nil {
 		// TODO: need to put retries and other fault tolerance here
 		fmt.Println(err)
 	}
 	for _, device := range devices {
+		if device.Commands != nil {
+			effector := &smartthings.STEffector{
+				ID:       device.ID,
+				DeviceID: device.ID,
+				Commands: nil, // FIXME: device.ListDeviceCommands(),
+				System:   stSystem,
+			}
+			reg.RegisterEffector(effector)
+		}
+
+		//reg.RegisterSensor(sensor)
 		fmt.Printf("%#v\n", device)
 	}
 
