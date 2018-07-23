@@ -66,6 +66,11 @@ func boot(config ambient.Config) error {
 	})
 
 	r.GET("/state", func(c *gin.Context) {
+
+		// This isn't really state. This is just printing out
+		// the registry temorarily for testing
+		// This will be replaced with actual state after
+		// I develop the polling/update mechanism
 		c.JSON(200, reg)
 	})
 
