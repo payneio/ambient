@@ -31,9 +31,13 @@ func Discover(config ambient.Config, reg *registry.Registry) {
 			}
 			reg.RegisterEffector(effector)
 		}
-
-		//reg.RegisterSensor(sensor)
-		fmt.Printf("%#v\n", device)
+		for k, v := range device.Attributes {
+			sensor := &smartthings.STSensor{
+				ID:    fmt.Sprintf(`%v:%v`, device.ID, k),
+				Value: v,
+			}
+			reg.RegisterSensor(sensor)
+		}
 	}
 
 	// TODO: need to register WHAT and HOW to read sensor data / state

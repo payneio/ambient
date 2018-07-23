@@ -66,18 +66,15 @@ func boot(config ambient.Config) error {
 	})
 
 	r.GET("/state", func(c *gin.Context) {
-		for k, v := range reg.GetEffectorMap() {
-			fmt.Printf(`%v: %#v\n`, k, v)
-		}
-		//fmt.Println(registry.GetSensorMap())
-		c.JSON(200, currentState)
+		c.JSON(200, reg)
 	})
 
 	r.POST("/effector/:id/command", func(c *gin.Context) {
-		// This is a temporary testing endpoint to see if I can actually
-		// control devices
 
-		// Get effector 9ad7395c-2b0d-459d-8e26-19b056ab1d0c
+		// This is a temporary testing endpoint for manually
+		// controlling devices
+
+		// Get effector by ID
 		id := c.Param(`id`)
 		if id == "" {
 			c.JSON(400, `id required`)
@@ -89,15 +86,17 @@ func boot(config ambient.Config) error {
 			return
 		}
 
+		// Unmarshal command from POST data
 		var cmd registry.Command
 		err := c.BindJSON(&cmd)
 		if err != nil {
 			c.JSON(400, `invalid body`)
 		}
 
+		// Execute command
 		effector.Exec(cmd)
-		fmt.Printf("Executed %#v on %v\n", cmd, id)
-		c.JSON(200, "")
+
+		c.JSON(200, "command executed")
 	})
 
 	r.POST("/desire", func(c *gin.Context) {

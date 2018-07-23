@@ -6,6 +6,12 @@ import (
 	"github.com/payneio/ambient/registry"
 )
 
+type Effector interface {
+	ID() string
+	Commands() map[string]Command
+	Exec(Command)
+}
+
 type STEffector struct {
 	ID       string
 	DeviceID string
