@@ -2,10 +2,42 @@ package smartthings
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/payneio/ambient/registry"
 )
+
+const (
+	apiURI = `https://graph.api.smartthings.com`
+
+	// Endpoints URL
+	endPointsURI = apiURI + "/api/smartapps/endpoints"
+)
+
+// GetEndPointsURI returns the smartthing endpoints URI. The endpoints
+// URI is the base for all app requests.
+func GetEndPointsURI(client *http.Client) (string, error) {
+	// Fetch the JSON containing our endpoint URI
+	resp, err := client.Get(endPointsURI)
+	if err != nil {
+		return "", fmt.Errorf("error getting endpoints URI %q", err)
+	}
+	contents, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if string(contents) == "[]" {
+		return "", fmt.Errorf("endpoint URI returned no content")
+	}
+
+	// Only URI is fetched from JSON string.
+	var ep []endpoints
+	err = json.Unmarshal(contents, &ep)
+	if err != nil {
+		return "", fmt.Errorf("error decoding JSON: %q", err)
+	}
+	return ep[0].URI, nil
+}
 
 type STDevice struct {
 	ID          string
@@ -80,9 +112,7 @@ func ListDeviceCommands(client *http.Client, endpoint string, id string) ([]STDe
 	return ret, nil
 }
 
-func SendCommand(client *http.Client, endpoint string, command registry.Command) error {
-	// FIXME: parse device ID from command using something
-	id := "1"
-	_, err := IssueCommand(client, endpoint, "/devices/"+id+"/"+command.ID)
+func SendCommand(client *http.Client, endpoint string, effectorID string, command registry.Command) error {
+	_, err := IssueCommand(client, endpoint, "/devices/"+effectorID+"/"+command.ID)
 	return err
 }

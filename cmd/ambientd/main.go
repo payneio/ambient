@@ -49,11 +49,11 @@ func main() {
 }
 
 func boot(config ambient.Config) error {
-	registry := registry.New()
+	reg := registry.New()
 
-	discovery.Discover(config, registry)
+	discovery.Discover(config, reg)
 
-	currentState := state.New(registry)
+	currentState := state.New(reg)
 	fmt.Print(currentState)
 
 	// Start HTTP
@@ -66,7 +66,38 @@ func boot(config ambient.Config) error {
 	})
 
 	r.GET("/state", func(c *gin.Context) {
+		for k, v := range reg.GetEffectorMap() {
+			fmt.Printf(`%v: %#v\n`, k, v)
+		}
+		//fmt.Println(registry.GetSensorMap())
 		c.JSON(200, currentState)
+	})
+
+	r.POST("/effector/:id/command", func(c *gin.Context) {
+		// This is a temporary testing endpoint to see if I can actually
+		// control devices
+
+		// Get effector 9ad7395c-2b0d-459d-8e26-19b056ab1d0c
+		id := c.Param(`id`)
+		if id == "" {
+			c.JSON(400, `id required`)
+			return
+		}
+		effector, ok := reg.GetEffector(id)
+		if !ok {
+			c.JSON(404, `id not found`)
+			return
+		}
+
+		var cmd registry.Command
+		err := c.BindJSON(&cmd)
+		if err != nil {
+			c.JSON(400, `invalid body`)
+		}
+
+		effector.Exec(cmd)
+		fmt.Printf("Executed %#v on %v\n", cmd, id)
+		c.JSON(200, "")
 	})
 
 	r.POST("/desire", func(c *gin.Context) {

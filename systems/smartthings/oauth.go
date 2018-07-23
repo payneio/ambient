@@ -18,11 +18,6 @@ const (
 	authDone  = "<html><body>Authentication Completed.</body></html>"
 	authError = "<html><body>Authentication error. Please see terminal output for details.</body></html>"
 
-	apiURI = `https://graph.api.smartthings.com`
-
-	// Endpoints URL
-	endPointsURI = apiURI + "/api/smartapps/endpoints"
-
 	// URL paths used for Oauth authentication on localhost
 	callbackPath = "/OAuthCallback"
 	donePath     = "/OauthDone"
@@ -154,29 +149,6 @@ func (g *Auth) handleOAuthCallback(w http.ResponseWriter, r *http.Request) {
 	// Redirect user to "Authentication done" page
 	http.Redirect(w, r, donePath, http.StatusTemporaryRedirect)
 	return
-}
-
-// GetEndPointsURI returns the smartthing endpoints URI. The endpoints
-// URI is the base for all app requests.
-func GetEndPointsURI(client *http.Client) (string, error) {
-	// Fetch the JSON containing our endpoint URI
-	resp, err := client.Get(endPointsURI)
-	if err != nil {
-		return "", fmt.Errorf("error getting endpoints URI %q", err)
-	}
-	contents, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if string(contents) == "[]" {
-		return "", fmt.Errorf("endpoint URI returned no content")
-	}
-
-	// Only URI is fetched from JSON string.
-	var ep []endpoints
-	err = json.Unmarshal(contents, &ep)
-	if err != nil {
-		return "", fmt.Errorf("error decoding JSON: %q", err)
-	}
-	return ep[0].URI, nil
 }
 
 // LoadToken loads the token from a file on disk. If nil is used for filename

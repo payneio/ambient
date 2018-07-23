@@ -38,6 +38,10 @@ type Registrar interface {
 	RegisterSystem()
 	RegisterSensor()
 	RegisterEffector()
+	GetSensorMap() map[string]*Sensor
+	GetEffectorMap() map[string]*Effector
+	GetEffector(string) Effector
+	GetSensor(string) Sensor
 }
 
 func New() *Registry {
@@ -58,4 +62,22 @@ func (r *Registry) RegisterSensor(sensor Sensor) {
 
 func (r *Registry) RegisterEffector(effector Effector) {
 	r.Effectors[effector.GetID()] = effector
+}
+
+func (r *Registry) GetSensorMap() map[string]Sensor {
+	return r.Sensors
+}
+
+func (r *Registry) GetSensor(id string) (Sensor, bool) {
+	v, ok := r.Sensors[id]
+	return v, ok
+}
+
+func (r *Registry) GetEffectorMap() map[string]Effector {
+	return r.Effectors
+}
+
+func (r *Registry) GetEffector(id string) (Effector, bool) {
+	v, ok := r.Effectors[id]
+	return v, ok
 }

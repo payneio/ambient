@@ -26,7 +26,7 @@ func Discover(config ambient.Config, reg *registry.Registry) {
 			effector := &smartthings.STEffector{
 				ID:       device.ID,
 				DeviceID: device.ID,
-				Commands: nil, // FIXME: device.ListDeviceCommands(),
+				Commands: device.Commands,
 				System:   stSystem,
 			}
 			reg.RegisterEffector(effector)
